@@ -13,8 +13,8 @@ def test_curve_fit_parallel_thread():
     true_b = 17.0/sc.Unit('m')
         
     # Create a 2D array by broadcasting x and z
-    x_2d = sc.broadcast(x, sizes={'z': z.sizes['z']})
-    z_2d = sc.broadcast(z, sizes={'x': x.sizes['x']})
+    x_2d = sc.broadcast(x, dims=['x', 'z'], shape=[x.sizes['x'], z.sizes['z']])
+    z_2d = sc.broadcast(z, dims=['x', 'z'], shape=[x.sizes['x'], z.sizes['z']])
     y = func(x_2d, a=true_a, b=true_b)
     
     # Add some noise
@@ -79,7 +79,7 @@ def test_curve_fit_dask_not_available(monkeypatch):
     monkeypatch.setattr(sc.curve_fit, 'HAS_DASK', False)
     
     def func(x, a, b):
-        return a * sc.exp((-b * x).to(dtype='float64'))
+        return a * sc.exp(-b * x.to(unit=None, dtype='float64'))
 
     x = sc.linspace(dim='x', start=0.0, stop=0.4, num=50, unit='m')
     y = func(x, a=5.0, b=17.0/sc.Unit('m'))
