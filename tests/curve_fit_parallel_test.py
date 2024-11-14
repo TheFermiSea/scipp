@@ -5,19 +5,22 @@ from scipp.testing import assert_allclose
 
 def test_curve_fit_parallel_thread():
     def func(x, a, b):
-        return a * sc.exp(-b * x)
+        return a * sc.exp((-b * x).to(dtype='float64'))
 
     x = sc.linspace(dim='x', start=0.0, stop=0.4, num=50, unit='m')
     z = sc.linspace(dim='z', start=0.0, stop=1, num=10)
     true_a = 5.0
     true_b = 17.0/sc.Unit('m')
-    y = func(x, a=true_a, b=true_b)
+        
+    # Create a 2D array by broadcasting
+    x_2d = sc.broadcast(x, sizes={'z': 10})
+    y = func(x_2d, a=true_a, b=true_b)
     
     # Add some noise
     rng = np.random.default_rng(1234)
     y.values += 0.01 * rng.normal(size=y.values.shape)
     
-    da = sc.DataArray(y, coords={'x': x, 'z': z})
+    da = sc.DataArray(y, coords={'x': x_2d, 'z': z})
     
     popt, pcov = sc.curve_fit(
         ['x'], func, da,
@@ -32,19 +35,22 @@ def test_curve_fit_parallel_thread():
 @pytest.mark.skipif(not sc.HAS_DASK, reason="Dask not available")
 def test_curve_fit_parallel_dask():
     def func(x, a, b):
-        return a * sc.exp(-b * x)
-
+        return a * sc.exp((-b * x).to(dtype='float64'))
+    
     x = sc.linspace(dim='x', start=0.0, stop=0.4, num=50, unit='m')
     z = sc.linspace(dim='z', start=0.0, stop=1, num=10)
     true_a = 5.0
     true_b = 17.0/sc.Unit('m')
-    y = func(x, a=true_a, b=true_b)
+        
+    # Create a 2D array by broadcasting
+    x_2d = sc.broadcast(x, sizes={'z': 10})
+    y = func(x_2d, a=true_a, b=true_b)
     
     # Add some noise
     rng = np.random.default_rng(1234)
     y.values += 0.01 * rng.normal(size=y.values.shape)
     
-    da = sc.DataArray(y, coords={'x': x, 'z': z})
+    da = sc.DataArray(y, coords={'x': x_2d, 'z': z})
     
     popt, pcov = sc.curve_fit(
         ['x'], func, da,
@@ -71,7 +77,7 @@ def test_curve_fit_dask_not_available(monkeypatch):
     monkeypatch.setattr(sc.curve_fit, 'HAS_DASK', False)
     
     def func(x, a, b):
-        return a * sc.exp(-b * x)
+        return a * sc.exp((-b * x).to(dtype='float64'))
 
     x = sc.linspace(dim='x', start=0.0, stop=0.4, num=50, unit='m')
     y = func(x, a=5.0, b=17.0/sc.Unit('m'))
