@@ -56,9 +56,10 @@ if(NOT CMAKE_BUILD_TYPE)
   )
 endif()
 
-# set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/sanitizers-cmake/cmake"
-                      ${CMAKE_MODULE_PATH}
+set(CMAKE_MODULE_PATH 
+    "${CMAKE_SOURCE_DIR}/cmake"
+    "${CMAKE_SOURCE_DIR}/externals/sanitizers-cmake/cmake"
+    ${CMAKE_MODULE_PATH}
 )
 # Custom install target for docs to depend on.
 add_custom_target(
