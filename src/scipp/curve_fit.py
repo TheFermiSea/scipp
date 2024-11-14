@@ -20,8 +20,6 @@ try:
 except ImportError:
     pass
 
-curve_fit.HAS_DASK = HAS_DASK
-
 from .core import (
     BinEdgeError,
     DataArray,
@@ -670,5 +668,6 @@ def curve_fit(
 
     return _datagroup_outputs(da, p0, map_over, *out)
 
+curve_fit.HAS_DASK = HAS_DASK
 
 __all__ = ['curve_fit']
