@@ -19,5 +19,5 @@ hypothesis = "*"
 matplotlib-base = "*"
 h5py = "*"
 
-[local-dependencies]
+[pypi-dependencies]
 scipp = { path = "." }
