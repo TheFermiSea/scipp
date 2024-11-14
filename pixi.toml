@@ -6,22 +6,22 @@ channels = ["conda-forge"]
 platforms = ["linux-64", "osx-64", "osx-arm64"]
 
 [dependencies]
-"python>=3.8"
-"cmake>=3.20"
-"ninja"
-"ccache" 
-"cxx-compiler"
-"ipykernel"
-"ipympl"
-"ipywidgets>=7.5"
-"matplotlib-base"
-"numpy"
-"pytest"
-"pytest-cov"
-"pythreejs"
-"scipy"
-"tbb"
-"tbb-devel"
+python = ">=3.8"
+cmake = ">=3.20"
+ninja = "*"
+ccache = "*"
+cxx-compiler = "*"
+ipykernel = "*"
+ipympl = "*"
+ipywidgets = ">=7.5"
+matplotlib-base = "*"
+numpy = "*"
+pytest = "*"
+pytest-cov = "*"
+pythreejs = "*"
+scipy = "*"
+tbb = "*"
+tbb-devel = "*"
 
 [tasks]
 build = { cmd = [
