@@ -2,11 +2,20 @@
 # Copyright (c) 2023 Scipp contributors (https://github.com/scipp)
 
 from collections.abc import Callable, Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from inspect import getfullargspec, isfunction
 from numbers import Real
+from typing import Optional
 
 import numpy as np
+
+try:
+    import dask
+    import dask.array as da
+    HAS_DASK = True
+except ImportError:
+    HAS_DASK = False
 
 from .core import (
     BinEdgeError,
@@ -176,6 +185,65 @@ def _reshape_bounds(bounds):
     return left, right
 
 
+def _curve_fit_single(
+    f,
+    da,
+    p0,
+    bounds,
+    unsafe_numpy_f,
+    **kwargs,
+):
+    """Process a single curve fit without mapping over dimensions."""
+    for k, v in p0.items():
+        if v.shape != ():
+            raise DimensionError(f'Parameter {k} has unexpected dimensions {v.dims}')
+
+    for k, (le, ri) in bounds.items():
+        if le.shape != ():
+            raise DimensionError(
+                f'Left bound of parameter {k} has unexpected dimensions {le.dims}'
+            )
+        if ri.shape != ():
+            raise DimensionError(
+                f'Right bound of parameter {k} has unexpected dimensions {ri.dims}'
+            )
+
+    fda = da.flatten(to='row')
+    if len(fda.masks) > 0:
+        _mask = zeros(dims=fda.dims, shape=fda.shape, dtype='bool')
+        for mask in fda.masks.values():
+            _mask |= mask
+        fda = fda[~_mask]
+
+    if not unsafe_numpy_f:
+        X = dict(fda.coords)
+    else:
+        X = np.vstack([c.values for c in fda.coords.values()], dtype='float')
+
+    import scipy.optimize as opt
+
+    if len(fda) < len(p0):
+        return np.array([np.nan for _ in p0]), np.array([[np.nan for _ in p0] for _ in p0])
+
+    try:
+        popt, pcov = opt.curve_fit(
+            f,
+            X,
+            fda.data.values,
+            [v.value for v in p0.values()],
+            sigma=_get_sigma(fda),
+            bounds=_reshape_bounds(bounds),
+            **kwargs,
+        )
+    except RuntimeError as err:
+        if hasattr(err, 'message') and 'Optimal parameters not found:' in err.message:
+            popt = np.array([np.nan for _ in p0])
+            pcov = np.array([[np.nan for _ in p0] for _ in p0])
+        else:
+            raise err
+
+    return popt, pcov
+
 def _curve_fit(
     f,
     da,
@@ -184,31 +252,70 @@ def _curve_fit(
     map_over,
     unsafe_numpy_f,
     out,
+    *,
+    parallel: Optional[str] = None,
+    n_workers: Optional[int] = None,
     **kwargs,
 ):
     dg, dgcov = out
 
     if len(map_over) > 0:
         dim = map_over[0]
-        for i in range(da.sizes[dim]):
-            _curve_fit(
-                f,
-                da[dim, i],
-                {k: v[dim, i] if dim in v.dims else v for k, v in p0.items()},
-                {
-                    k: (
-                        le[dim, i] if dim in le.dims else le,
-                        ri[dim, i] if dim in ri.dims else ri,
-                    )
-                    for k, (le, ri) in bounds.items()
-                },
-                map_over[1:],
-                unsafe_numpy_f,
-                (dg[i], dgcov[i]),
-                **kwargs,
-            )
-
+        size = da.sizes[dim]
+        
+        def process_slice(i):
+            slice_da = da[dim, i]
+            slice_p0 = {k: v[dim, i] if dim in v.dims else v for k, v in p0.items()}
+            slice_bounds = {
+                k: (
+                    le[dim, i] if dim in le.dims else le,
+                    ri[dim, i] if dim in ri.dims else ri,
+                )
+                for k, (le, ri) in bounds.items()
+            }
+            
+            if len(map_over) > 1:
+                _curve_fit(
+                    f,
+                    slice_da,
+                    slice_p0,
+                    slice_bounds,
+                    map_over[1:],
+                    unsafe_numpy_f,
+                    (dg[i], dgcov[i]),
+                    parallel=parallel,
+                    n_workers=n_workers,
+                    **kwargs,
+                )
+            else:
+                popt, pcov = _curve_fit_single(
+                    f,
+                    slice_da,
+                    slice_p0,
+                    slice_bounds,
+                    unsafe_numpy_f,
+                    **kwargs,
+                )
+                dg[i] = popt
+                dgcov[i] = pcov
+        
+        if parallel == 'thread':
+            max_workers = n_workers if n_workers is not None else None
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                list(executor.map(process_slice, range(size)))
+        elif parallel == 'dask':
+            import dask
+            lazy_results = [dask.delayed(process_slice)(i) for i in range(size)]
+            dask.compute(*lazy_results, num_workers=n_workers)
+        else:
+            for i in range(size):
+                process_slice(i)
         return
+
+    # Single fit without mapping
+    popt, pcov = _curve_fit_single(f, da, p0, bounds, unsafe_numpy_f, **kwargs)
+    dg[:] = popt
+    dgcov[:] = pcov
 
     for k, v in p0.items():
         if v.shape != ():
@@ -276,6 +383,8 @@ def curve_fit(
     bounds: dict[str, tuple[Variable, Variable] | tuple[Real, Real]] | None = None,
     reduce_dims: Sequence[str] = (),
     unsafe_numpy_f: bool = False,
+    parallel: Optional[str] = None,
+    n_workers: Optional[int] = None,
     **kwargs,
 ) -> tuple[DataGroup, DataGroup]:
     """Use non-linear least squares to fit a function, f, to data.
@@ -535,6 +644,12 @@ def curve_fit(
 
     out = _prepare_numpy_outputs(da, p0, map_over)
 
+    if parallel not in (None, 'thread', 'dask'):
+        raise ValueError("parallel must be one of: None, 'thread', 'dask'")
+        
+    if parallel == 'dask' and not HAS_DASK:
+        raise ImportError("Dask is required for parallel='dask'. Please install dask.")
+
     _curve_fit(
         f,
         _da,
@@ -543,6 +658,8 @@ def curve_fit(
         map_over,
         unsafe_numpy_f,
         out,
+        parallel=parallel,
+        n_workers=n_workers,
         **kwargs,
     )
 
