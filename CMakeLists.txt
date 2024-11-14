@@ -21,6 +21,9 @@ if(SKBUILD)
   add_definitions(-DSCIPP_VERSION="${SKBUILD_PROJECT_VERSION_FULL}")
   message(STATUS "Got version from SKBUILD: ${SKBUILD_PROJECT_VERSION_FULL}")
 else()
+  # Default version if git info not available
+  set(DEFAULT_VERSION "0.0.1")
+  
   execute_process(
     COMMAND git describe --tags --exclude nightly
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
@@ -28,12 +31,19 @@ else()
     OUTPUT_VARIABLE GIT_VERSION_INFO
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-  # We get something like 23.08.0-266-g068b161fe, remove the -g<hash> part
-  string(REGEX REPLACE "-g[0-9a-f]+$" "" GIT_VERSION_INFO ${GIT_VERSION_INFO})
-  # Replace '-' with '.dev' for PEP440 compatibility
-  string(REGEX REPLACE "-" ".dev" SCIPP_VERSION_PEP440 ${GIT_VERSION_INFO})
-  # Cmake does not like letters, remove the dev, will act as "tweak" number
-  string(REGEX REPLACE "-" "" SCIPP_VERSION_CMAKE ${GIT_VERSION_INFO})
+
+  if(HAVE_GIT_VERSION_INFO EQUAL 0 AND GIT_VERSION_INFO)
+    # We get something like 23.08.0-266-g068b161fe, remove the -g<hash> part
+    string(REGEX REPLACE "-g[0-9a-f]+$" "" GIT_VERSION_INFO "${GIT_VERSION_INFO}")
+    # Replace '-' with '.dev' for PEP440 compatibility  
+    string(REGEX REPLACE "-" ".dev" SCIPP_VERSION_PEP440 "${GIT_VERSION_INFO}")
+    # Cmake does not like letters, remove the dev, will act as "tweak" number
+    string(REGEX REPLACE "-" "" SCIPP_VERSION_CMAKE "${GIT_VERSION_INFO}")
+  else()
+    set(GIT_VERSION_INFO ${DEFAULT_VERSION})
+    set(SCIPP_VERSION_PEP440 ${DEFAULT_VERSION})
+    set(SCIPP_VERSION_CMAKE ${DEFAULT_VERSION})
+  endif()
 
   project(
     scipp
