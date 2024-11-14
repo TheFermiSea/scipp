@@ -45,7 +45,6 @@ from .visualization import show, make_svg, to_html, make_html, table
 Variable._repr_html_ = make_html
 DataArray._repr_html_ = make_html
 Dataset._repr_html_ = make_html
-del visualization
 
 from .io.hdf5 import save_hdf5 as _save_hdf5
 
@@ -69,8 +68,6 @@ from .compat.dict import to_dict, from_dict
 
 from .object_list import _repr_html_
 from .utils import collapse, slices
-
-del object_list, utils
 
 from .coords import transform_coords, show_graph
 
@@ -173,8 +170,6 @@ from .logging import display_logs, get_logger
 
 from .reduction import reduce
 
-del reduction
-
 # Mainly imported for docs
 from .core import Bins, Coords, GroupByDataset, GroupByDataArray, Masks
 
@@ -245,18 +240,13 @@ from . import data
 from . import spatial
 from .operations import elemwise_func
 
-del operations
-
 from .plotting import plot
 
 Variable.plot = plot
 DataArray.plot = plot
 Dataset.plot = plot
-del plotting
 
 from .core.util import VisibleDeprecationWarning
-
-del core
 
 from .curve_fit import curve_fit, HAS_DASK
 
