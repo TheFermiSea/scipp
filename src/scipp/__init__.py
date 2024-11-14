@@ -258,9 +258,10 @@ from .core.util import VisibleDeprecationWarning
 
 del core
 
-from .curve_fit import curve_fit
+from .curve_fit import curve_fit, HAS_DASK
 
 __all__ = [
+    'HAS_DASK',
     'BinEdgeError',
     'BinnedDataError',
     'Bins',
