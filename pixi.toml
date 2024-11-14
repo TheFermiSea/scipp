@@ -18,6 +18,7 @@ pytest = "*"
 hypothesis = "*"
 matplotlib-base = "*"
 h5py = "*"
+pip = "*"
 
-[pypi-dependencies]
-scipp = { path = "." }
+[tasks]
+install-dev = "pip install -e ."
