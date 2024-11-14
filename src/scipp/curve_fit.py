@@ -11,7 +11,7 @@ from typing import Optional
 import numpy as np
 
 HAS_DASK = False
-__all__ = ['curve_fit', 'HAS_DASK']
+__all__ = ['curve_fit']
 
 try:
     import dask
@@ -19,6 +19,8 @@ try:
     HAS_DASK = True
 except ImportError:
     pass
+
+curve_fit.HAS_DASK = HAS_DASK
 
 from .core import (
     BinEdgeError,
