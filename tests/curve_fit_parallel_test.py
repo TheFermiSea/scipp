@@ -29,7 +29,7 @@ def test_curve_fit_parallel_thread():
     assert_allclose(popt['a'].value, true_a, rtol=0.1)
     assert_allclose(popt['b'].value, true_b, rtol=0.1)
 
-@pytest.mark.skipif(not sc.curve_fit.HAS_DASK, reason="Dask not available")
+@pytest.mark.skipif(not sc.HAS_DASK, reason="Dask not available")
 def test_curve_fit_parallel_dask():
     def func(x, a, b):
         return a * sc.exp(-b * x)

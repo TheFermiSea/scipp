@@ -13,6 +13,7 @@ import numpy as np
 try:
     import dask
     import dask.array as da
+    __all__.append('HAS_DASK')
     HAS_DASK = True
 except ImportError:
     HAS_DASK = False
