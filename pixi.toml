@@ -2,6 +2,7 @@
 name = "scipp"
 version = "0.0.0"
 description = "Multi-dimensional data arrays with labeled dimensions"
+channels = ["conda-forge"]
 
 [target.dev]
 dependencies = [
