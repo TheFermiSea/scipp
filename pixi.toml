@@ -1,58 +1,20 @@
 [project]
-authors = ["TheFermiSea <squires.b@gmail.com>"]
-channels = ["conda-forge", "scipp"]
-description = "Add a short description here"
 name = "scipp-dev"
-platforms = ["osx-arm64"]
 version = "0.1.0"
-
-[tasks]
+description = "Scipp development environment"
+channels = ["conda-forge", "scipp"]
+platforms = ["osx-arm64"]
 
 [dependencies]
+python = "3.10.*"
+numpy = ">=1.21"
+scipy = ">=1.7.0"
+dask = ">=2024.11.2,<2025"
+distributed = "*"
 cmake = "3.30.3.*"
 conan = "1.64.1.*"
-conda-build = "*"
-h5py = "*"
-hypothesis = "*"
-ipympl = "*"
-ipywidgets = "*"
-jupyterlab = "*"
-jupyterlab_code_formatter = "*"
-matplotlib-base = "*"
 ninja = "*"
-numba = "*"
-numpy = ">=1.21"
-pandas = "*"
-pip = "*"
-pooch = "*"
-pre-commit = "*"
 pytest = "*"
-python = "3.10.*"
-python-graphviz = "*"
-pythreejs = "*"
-pyyaml = "*"
-plopp = { channel = "scipp" }
-scipy = ">=1.7.0"
-tbb = "2021.12.0.*"
-tbb-devel = "2021.12.0.*"
-tox = "*"
-xarray = "*"
-dask = ">=2024.11.2,<2025"
-[project]
-name = "scipp"
-version = "0.0.1"
-description = "Multi-dimensional data arrays with labeled dimensions"
-authors = ["Scipp contributors <https://github.com/scipp>"]
-channels = ["conda-forge"]
-platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
-
-[tasks]
-test = "pytest"
-docs = "sphinx-build -M html docs/ build/"
-
-[dependencies]
-python = ">=3.8"
-numpy = "*"
-scipy = "*"
-dask = "*"
-distributed = "*"  # Dask's distributed scheduler
+hypothesis = "*"
+matplotlib-base = "*"
+h5py = "*"
