@@ -5,15 +5,16 @@ from scipp.testing import assert_allclose
 
 def test_curve_fit_parallel_thread():
     def func(x, a, b):
-        return a * sc.exp((-b * x).to(dtype='float64'))
+        return a * sc.exp(-b * x.to(unit=None, dtype='float64'))
 
     x = sc.linspace(dim='x', start=0.0, stop=0.4, num=50, unit='m')
     z = sc.linspace(dim='z', start=0.0, stop=1, num=10)
     true_a = 5.0
     true_b = 17.0/sc.Unit('m')
         
-    # Create a 2D array by broadcasting
-    x_2d = sc.broadcast(x, sizes={'z': 10})
+    # Create a 2D array by broadcasting x and z
+    x_2d = sc.broadcast(x, sizes={'z': z.sizes['z']})
+    z_2d = sc.broadcast(z, sizes={'x': x.sizes['x']})
     y = func(x_2d, a=true_a, b=true_b)
     
     # Add some noise
@@ -35,15 +36,16 @@ def test_curve_fit_parallel_thread():
 @pytest.mark.skipif(not sc.HAS_DASK, reason="Dask not available")
 def test_curve_fit_parallel_dask():
     def func(x, a, b):
-        return a * sc.exp((-b * x).to(dtype='float64'))
+        return a * sc.exp(-b * x.to(unit=None, dtype='float64'))
     
     x = sc.linspace(dim='x', start=0.0, stop=0.4, num=50, unit='m')
     z = sc.linspace(dim='z', start=0.0, stop=1, num=10)
     true_a = 5.0
     true_b = 17.0/sc.Unit('m')
         
-    # Create a 2D array by broadcasting
-    x_2d = sc.broadcast(x, sizes={'z': 10})
+    # Create a 2D array by broadcasting x and z
+    x_2d = sc.broadcast(x, sizes={'z': z.sizes['z']})
+    z_2d = sc.broadcast(z, sizes={'x': x.sizes['x']})
     y = func(x_2d, a=true_a, b=true_b)
     
     # Add some noise
