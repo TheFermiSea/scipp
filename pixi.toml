@@ -1,0 +1,31 @@
+[project]
+name = "scipp"
+version = "0.0.0"
+description = "Multi-dimensional data arrays with labeled dimensions"
+
+[target.dev]
+dependencies = [
+    "python>=3.8",
+    "cmake>=3.20",
+    "ninja",
+    "ccache",
+    "cxx-compiler",
+    "ipykernel",
+    "ipympl",
+    "ipywidgets>=7.5",
+    "matplotlib-base",
+    "numpy",
+    "pytest",
+    "pytest-cov",
+    "pythreejs",
+    "scipy",
+    "tbb",
+    "tbb-devel"
+]
+
+[tasks]
+build = { cmd = [
+    "cmake -GNinja -DCMAKE_BUILD_TYPE=Debug -B build -S .",
+    "cmake --build build"
+] }
+test = { cmd = ["pytest"] }
