@@ -10,15 +10,15 @@ from typing import Optional
 
 import numpy as np
 
-__all__ = ['curve_fit']
+HAS_DASK = False
+__all__ = ['curve_fit', 'HAS_DASK']
 
 try:
     import dask
     import dask.array as da
-    __all__.append('HAS_DASK')
     HAS_DASK = True
 except ImportError:
-    HAS_DASK = False
+    pass
 
 from .core import (
     BinEdgeError,
