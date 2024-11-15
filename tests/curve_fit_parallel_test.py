@@ -16,7 +16,7 @@ def test_parallel_curve_fit_basic():
     y.values += 0.01 * rng.normal(size=50)
     da = sc.DataArray(y, coords={'x': x})
 
-    popt, pcov = sc.curve_fit_parallel(['x'], func, da, p0={'b': 1.0 / sc.Unit('m')})
+    popt, pcov = sc.curve_fit_parallel(['x'], func, da, p0={'a': 1.0, 'b': 1.0 / sc.Unit('m')})
     
     # Check parameter values are close to true values
     assert_allclose(popt['a'], sc.scalar(5.0), rtol=1e-2)
@@ -41,7 +41,7 @@ def test_parallel_curve_fit_2d():
     da = sc.DataArray(y, coords={'x': x, 'z': z})
 
     popt, pcov = sc.curve_fit_parallel(
-        ['x', 'z'], func, da, p0={'b': 1.0 / sc.Unit('m')}, n_workers=2
+        ['x', 'z'], func, da, p0={'a': 1.0, 'b': 1.0 / sc.Unit('m')}, n_workers=2
     )
     
     assert_allclose(popt['a'], sc.scalar(5.0), rtol=1e-2)
@@ -61,7 +61,7 @@ def test_parallel_curve_fit_with_map_over():
     da = sc.DataArray(y, coords={'x': x, 'z': z})
 
     popt, _ = sc.curve_fit_parallel(
-        ['x'], func, da, p0={'b': 1.0 / sc.Unit('m')}, chunks=25
+        ['x'], func, da, p0={'a': 1.0, 'b': 1.0 / sc.Unit('m')}, chunks=25
     )
     
     # Check that fitted 'a' parameter follows z coordinate values
@@ -85,7 +85,7 @@ def test_parallel_curve_fit_with_bounds():
     }
     
     popt, _ = sc.curve_fit_parallel(
-        ['x'], func, da, p0={'b': 1.0 / sc.Unit('m')}, bounds=bounds
+        ['x'], func, da, p0={'a': 4.5, 'b': 15.0 / sc.Unit('m')}, bounds=bounds
     )
     
     assert_allclose(popt['a'], sc.scalar(5.0), rtol=1e-2)
@@ -109,7 +109,7 @@ def test_parallel_curve_fit_with_mask():
     da.masks['test_mask'] = mask
 
     popt, _ = sc.curve_fit_parallel(
-        ['x'], func, da, p0={'b': 1.0 / sc.Unit('m')}
+        ['x'], func, da, p0={'a': 1.0, 'b': 1.0 / sc.Unit('m')}
     )
     
     assert_allclose(popt['a'], sc.scalar(5.0), rtol=1e-2)
