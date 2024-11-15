@@ -434,3 +434,6 @@ __all__ = [
     'zeros',
     'zeros_like',
 ]
+from .curve_fit_parallel import curve_fit_parallel
+
+__all__ = ['curve_fit_parallel']
