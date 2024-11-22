@@ -259,6 +259,7 @@ from .core.util import VisibleDeprecationWarning
 del core
 
 from .curve_fit import curve_fit
+from .curve_fit_parallel import curve_fit_parallel
 
 __all__ = [
     'BinEdgeError',

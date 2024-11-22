@@ -1,0 +1,42 @@
+[project]
+authors = ["brian <squires.b@gmail.com>"]
+channels = ["conda-forge", "scipp"]
+description = "Add a short description here"
+name = "scipp-dev"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+
+[dependencies]
+cmake = "3.30.3.*"
+conan = "1.64.1.*"
+conda-build = "*"
+h5py = "*"
+hypothesis = "*"
+ipympl = "*"
+ipywidgets = "*"
+jupyterlab = "*"
+jupyterlab_code_formatter = "*"
+matplotlib-base = "*"
+ninja = "*"
+numba = "*"
+numpy = ">=1.21"
+pandas = "*"
+pip = "*"
+pooch = "*"
+pre-commit = "*"
+pytest = "*"
+python = "3.10.*"
+python-graphviz = "*"
+pythreejs = "*"
+pyyaml = "*"
+plopp = { channel = "scipp" }
+scipy = ">=1.7.0"
+tbb = "2021.12.0.*"
+tbb-devel = "2021.12.0.*"
+tox = "*"
+xarray = "*"
+
+[pypi-dependencies]
+scipp = { path = "./", editable = true}
