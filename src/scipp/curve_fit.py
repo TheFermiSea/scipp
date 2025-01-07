@@ -19,6 +19,7 @@ from ._scipp import (
     DataArray as _DataArray,
     Dataset as _Dataset,
     zeros,
+    curve_fit as _curve_fit,
 )
 import pickle
 from multiprocessing import Pool
@@ -118,7 +119,7 @@ def _curve_fit_chunk(
     # Create a dataarray with only the participating coords
     _da = DataArray(da.data, coords=coords, masks=da.masks)
 
-    return _scipp._curve_fit(
+    return _curve_fit(
         f=f,
         da=_DataArray(_da),
         p0=_Dataset({k: v for k, v in p0.items()}),
